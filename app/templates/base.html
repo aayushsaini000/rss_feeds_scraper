@@ -1,0 +1,48 @@
+
+<!doctype html>
+<html>
+<head>
+    {% block title %}
+    <title>
+    {% if title %}MyApp - {{ title }}{% else %}MyApp{% endif %}
+    </title>
+    {% endblock %}
+    {% block external_css %}
+    <link rel="stylesheet" href="{{url_for('static', filename='css/bootstrap.min.css')}}">
+    {% endblock %}
+
+    {% block internal_css %}
+    {% endblock %}
+
+    {% block external_js %}
+    <script type = "text/javascript" src = "{{ url_for('static', filename = 'js/jquery-3.6.0.min.js') }}"></script>
+    {% endblock %}
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="{{ url_for('main.index') }}">MyApp</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+        <li class="nav-item active">
+            <a class="nav-link" href="{{ url_for('main.index') }}">Home <span class="sr-only">(current)</span></a>
+        </li>
+        </ul>
+        <ul class="navbar-nav navbar-right">
+        {% if not current_user.is_anonymous %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.admin') }}">SearchFeed</a></li>
+            {% endif  %}
+            {% if current_user.is_anonymous %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">Login</a></li>
+            {% else %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a></li>
+            {% endif %}
+        </ul>
+    </div>
+</nav>
+{% block content %}
+{% endblock %}
+</body>
