@@ -1,9 +1,11 @@
 from app import create_app, db
-from app.models import User
-
+from app.models import User, RssFeed
 app = create_app()
 
 
 @app.shell_context_processor
 def make_shell_context():
-    return {'db': db, 'User': User}
+    """
+    function to access context ojects in shell
+    """
+    return {'db': db, 'User': User, 'RssFeed': RssFeed}

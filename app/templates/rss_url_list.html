@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-fluid p-0">
+    <!--<h1 class="h3 mb-3">Host Table</h1>-->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header" style="text-align: right;">
+                    <button type="button" id="rssCreateButton" class="btn btn-primary" data-bs-toggle="modal"
+                        data-bs-target="#createRSSFeedModal">New Rss Feed</button>
+                </div>
+                <div class="card-body">
+                    <table id="rssListTable" class="table table-striped" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>RSS URL</th>
+                                <th>Category</th>
+                                <th>Last Updated</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- create rss feed modal -->
+<form method="POST" action="{{ url_for('main.ajax_rss_create') }}" id="createRssForm">
+    {{ rss_form.csrf_token }}
+    <div class="modal fade" id="createRSSFeedModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Create New RSS Feed</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body m-1">
+                    <ul class=flashes>
+                        <li id="rss_error_msg" style="display: none;"></li>
+                    </ul>
+                    <div class="form-group">
+                        <label for="rss_url" class="col-form-label">RSS Feed URL:</label>
+                        <textarea name="feed_url" class="form-control" id="feed_url" placeholder="Enter rss feed url"
+                            rows="5" required></textarea>
+                        <small class="form-text"><b>Note: Use , to pass multiple urls.</b></small>
+                    </div>
+                    <div class="form-group">
+                        <label for="category" class="col-form-label">Category:</label>
+                        <input type="text" maxlength="50" name="category" class="form-control" id="category"
+                            placeholder="Enter category." required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- edit rss modal-->
+<form id="formEditRss" method="POST" action="">
+    {{ form.csrf_token }}
+    <div class="modal fade" id="editRssModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit RSS Feed</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body m-1">
+                    <ul class=flashes>
+                        <li id="edit_rss_error_msg" style="display: none;"></li>
+                    </ul>
+                    <div class="form-group">
+                        <label for="rss_url" class="col-form-label">RSS Feed URL:</label>
+                        <input type="text" maxlength="255" name="edit_feed_url" class="form-control" id="edit_feed_url"
+                            placeholder="Enter rss feed url" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="category" class="col-form-label">Category:</label>
+                        <input type="text" maxlength="50" name="edit_category" class="form-control" id="edit_category"
+                            placeholder="Enter category." required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- Delete rss modal -->
+<form id="formDeleteRss" method="POST" action="">
+    {{ form.csrf_token }}
+    <div class="modal fade" id="deleteRssModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Are you sure?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Delete</button>
+                </div>
+                <div class="modal-footer">
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+{% block page_js %}
+<script type="text/JavaScript" src="{{url_for('static', filename='js/flask_ajax_setup.js')}}"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        /* Ajax to load datatable source*/
+        var usertable = $('#rssListTable').DataTable({
+            "ajax": "{{ url_for('main.ajax_rss_list') }}"
+        });
+
+        /*Restrict user to start from space in notes input field*/
+        $("#feed_url").on("keypress", function (e) {
+            if (e.which === 32 && !this.value.length)
+                e.preventDefault();
+        });
+
+        $("#category").on("keypress", function (e) {
+            if (e.which === 32 && !this.value.length)
+                e.preventDefault();
+        });
+
+        /* Create User Form validation and submission */
+        var createfrm = $('#createRssForm');
+        createfrm.on('submit', function (e) {
+            e.preventDefault()
+            $('#rss_error_msg').hide()
+            $.ajax({
+                type: 'POST',
+                url: createfrm.attr('action'),
+                data: createfrm.serialize(),
+                success: function (res) {
+                    $("#rss_error_msg").text(res.msg).show();
+                    if (res.status == 'error') {
+                        return false;
+                    }
+                    else {
+                        setTimeout(function () {
+                            $("#createRSSFeedModal").hide()
+                            window.location.reload()
+                        }, 1500);
+                    }
+                },
+                error: function (xhr, errmsg, err) {
+                    $("#rss_error_msg").text("Something went wrong!").show();
+                    console.log(xhr.status + ": " + xhr.responseText);
+                }
+            });
+        });
+
+        /* Create/Edit notes form susmission */
+        $('#rssListTable tbody').on('click', 'tr td a.editRssFeed', function (e) {
+            console.log('clicked...')
+            var edit_feed_url = $(this).closest('tr').find('td:eq(1)').text();
+            var edit_category = $(this).closest('tr').find('td:eq(2)').text();
+            e.preventDefault()
+            $('#edit_feed_url').val(edit_feed_url);
+            $('#edit_category').val(edit_category);
+            url = $(this).attr('data-url');
+            $('#editRssModal').modal('show');
+            $('#formEditRss').attr('action', url);
+        });
+
+        /* Update RSS Feed Form validation and submission */
+        var editfrm = $('#formEditRss');
+        editfrm.on('submit', function (e) {
+            e.preventDefault()
+            $('#edit_rss_error_msg').hide()
+            $.ajax({
+                type: 'POST',
+                url: editfrm.attr('action'),
+                data: editfrm.serialize(),
+                success: function (res) {
+                    $("#edit_rss_error_msg").text(res.msg).show();
+                    if (res.status == 'error') {
+                        return false;
+                    }
+                    else {
+                        setTimeout(function () {
+                            $("#editRssModal").hide()
+                            window.location.reload()
+                        }, 1500);
+                    }
+                },
+                error: function (xhr, errmsg, err) {
+                    $("#edit_rss_error_msg").text("Something went wrong!").show();
+                    console.log(xhr.status + ": " + xhr.responseText);
+                }
+            });
+        });
+
+        /* Delete host form susmission */
+        $('#rssListTable tbody').on('click', 'tr td a.deleteRssFeed', function (e) {
+            e.preventDefault()
+            url = $(this).attr('data-url');
+            $('#deleteRssModal').modal('show');
+            $('#formDeleteRss').attr('action', url);
+        });
+
+    })
+</script>
+{% endblock %}

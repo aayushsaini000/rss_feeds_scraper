@@ -1,0 +1,21 @@
+{% extends 'base_public.html' %}
+{% block title %}RSS Feed Detail{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="row mt-3">
+        <div class="col-md-1"></div>
+        <div class="col-md-10">
+            {% for d in data %}
+            <div class="card mb-2">
+                <div class="card-body">
+                    <h5><a href="{{ d.link }}" target="_blank">{{ d.title }}</a></h5>
+                    <p>{{ d.summary }}</p>
+                    <small>{{ d.published }}</small>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="col-md-1"></div>
+    </div>
+</div>
+{% endblock %}
